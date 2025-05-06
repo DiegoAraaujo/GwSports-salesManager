@@ -1,0 +1,15 @@
+.button{
+  max-width: 150px;
+  background-color: var(--secundary-color);
+  border: none;
+  padding: 0.3rem 2rem;
+  border-radius: 20px;
+  cursor: pointer;
+  box-shadow: 1px 1px 3px black;
+  font-size: 1rem;
+  transition: ease 0.3s transform;
+}
+
+.button:hover{
+  transform: scale(1.05);
+}

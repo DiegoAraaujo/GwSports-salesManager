@@ -1,0 +1,16 @@
+.productFound {
+  color: var(--primary-color);
+  background-color: var(--complementary-color);
+  padding: 0.3rem 2rem;
+  border-radius: 20px;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.productFound > span {
+  display: inline-block;
+  background-color: var(--background-containers);
+  padding: 0.2rem 0.5rem;
+  border-radius: 3px;
+}
