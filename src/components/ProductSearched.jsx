@@ -1,4 +1,4 @@
-import "./ProductSearched.css";
+import "../styles/ProductSearched.css";
 
 function ProductSearched({ nome,unidades, categoria, marca,preco}) {
   return (

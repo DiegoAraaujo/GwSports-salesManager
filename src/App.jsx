@@ -1,13 +1,21 @@
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 import Header from "./components/Header.jsx";
-import Main from "./components/Main.jsx";
+import RegistrationPage from "./components/pages/RegistrationPage.jsx";
+import EditPage from "./components/pages/EditPage.jsx";
+import InsightsPage from "./components/pages/insightsPage.jsx";
 import "./App.css";
 
 function App() {
   return (
-    <>
+    <BrowserRouter>
       <Header />
-      <Main />
-    </>
+      <Routes>
+        <Route path="/" element={<RegistrationPage />} />
+        <Route path="/editPage" element={<EditPage />} />
+        <Route path="/insightsPage" element={<InsightsPage />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

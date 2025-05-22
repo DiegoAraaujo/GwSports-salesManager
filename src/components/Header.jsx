@@ -1,14 +1,16 @@
 import { useState } from "react";
-import "./header.css";
+import { Link, useLocation } from "react-router-dom";
+import "../styles/header.css";
 import LogoMarca from "../assets/logo-GwSports.svg";
 import ProductSearched from "./ProductSearched";
 
 function Header() {
-  // Estado para armazenar o termo pesquisado
   const [termoPesquisa, setTermoPesquisa] = useState("");
   const [produtosFiltrados, setProdutosFiltrados] = useState([]);
 
-  // Lista de produtos disponíveis
+  // Hook para pegar a rota atual
+  const location = useLocation();
+
   const produtos = [
     {
       Nome: "Camiseta academia",
@@ -36,23 +38,25 @@ function Header() {
     },
   ];
 
-  // Função para atualizar a pesquisa e filtrar os produtos
   function handlePesquisa(evento) {
     const texto = evento.target.value;
     setTermoPesquisa(texto);
 
-    // Se o campo estiver vazio, a lista de produtos some
     if (texto.trim() === "") {
-      setProdutosFiltrados([]); // Limpa a lista
+      setProdutosFiltrados([]);
       return;
     }
 
-    // Filtra os produtos pelo nome
     const filtrados = produtos.filter((produto) =>
       produto.Nome.toLowerCase().includes(texto.toLowerCase())
     );
 
     setProdutosFiltrados(filtrados);
+  }
+
+  // Função que verifica se a rota está ativa
+  function isActive(path) {
+    return location.pathname === path ? "icon-active" : "";
   }
 
   return (
@@ -68,11 +72,10 @@ function Header() {
           type="text"
           placeholder="Pesquise por um produto"
           value={termoPesquisa}
-          onChange={handlePesquisa} // Chamamos a função ao digitar
+          onChange={handlePesquisa}
         />
         <ion-icon name="search-sharp"></ion-icon>
 
-        {/* Exibe a lista de produtos filtrados somente se houver resultados */}
         {produtosFiltrados.length > 0 && (
           <div className="list-productFound">
             {produtosFiltrados.map((produto, index) => (
@@ -91,15 +94,23 @@ function Header() {
       </div>
 
       <div className="options-menu-navegation">
-        <div className="icon-active">
-          <ion-icon name="home"></ion-icon>
-        </div>
-        <div>
-          <ion-icon name="bar-chart-sharp"></ion-icon>
-        </div>
-        <div>
-          <ion-icon name="settings"></ion-icon>
-        </div>
+        <Link to="/">
+          <div className={isActive("/")}>
+            <ion-icon name="home"></ion-icon>
+          </div>
+        </Link>
+
+        <Link to="/insightsPage">
+          <div className={isActive("/insightsPage")}>
+            <ion-icon name="bar-chart-sharp"></ion-icon>
+          </div>
+        </Link>
+
+        <Link to="/config">
+          <div className={isActive("/config")}>
+            <ion-icon name="settings"></ion-icon>
+          </div>
+        </Link>
       </div>
     </header>
   );

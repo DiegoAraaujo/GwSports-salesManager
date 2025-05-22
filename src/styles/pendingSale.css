@@ -1,0 +1,12 @@
+.payments-details{
+  display: flex;
+  justify-content: space-between;
+  background-color:var(--complementary-color);
+  padding: 0.5rem 2rem;
+  border-radius: 15px;
+}
+
+.payments-details p{
+  font-size: 1.3rem;
+  font-weight: 600;
+}

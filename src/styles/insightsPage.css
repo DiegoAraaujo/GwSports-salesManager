@@ -1,0 +1,80 @@
+.container-insightsPage {
+  display: flex;
+  flex-direction: column;
+}
+
+.smartsection {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height: 300px;
+  gap: 2rem;
+}
+
+.report-container > div {
+  background-color: var(--background-containers);
+  max-width: 40rem;
+  line-height: 1.5;
+  border-radius: 20px;
+  padding: 2rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.graphic-container > div {
+  background-color: var(--background-containers);
+  border-radius: 20px;
+  padding: 2rem;
+  height: 100%;
+}
+
+.graphic-container img {
+  height: 230px;
+}
+
+.report-container > h2,
+.graphic-container > h2,
+.pending-payments-section > h2 {
+  color: var(--secundary-color);
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.pending-payments-section {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.pending-list{
+  background-color: var(--background-containers);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  list-style: none;
+  padding: 1rem;
+  gap: 1rem;
+  border-radius: 0 0 20px 20px;
+}
+
+.pending-list li{
+  display: flex;
+  width: 90%;
+  gap: 1rem;
+}
+
+.pending-list li div{
+  display: flex;
+  flex: 1;
+}
+
+.pending-list-columns{
+  background-color: var(--background-containers);
+  display: flex;
+  justify-content: space-evenly;
+  padding: 1rem;
+  border-radius: 20px 20px 0 0;
+    font-weight: 900;
+  font-size: 1.3rem;
+}

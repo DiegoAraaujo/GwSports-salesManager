@@ -1,4 +1,4 @@
-import "./productDate.css"
+import "../styles/productDate.css"
 
 function ProductDate(){
   return(
