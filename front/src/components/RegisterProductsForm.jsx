@@ -26,16 +26,6 @@ function RegisterProductsForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    console.log("Dados sendo enviados:", {
-      nome: produto.nome,
-      categoria: produto.categoria,
-      tamanho: produto.tamanho,
-      marca: produto.marca,
-      preco_original: parseFloat(produto.precoOriginal),
-      preco_revenda: parseFloat(produto.precoRevenda),
-      quantidade: parseInt(produto.quantidade),
-    });
-
     axios
       .post("http://localhost:3000/produtos", {
         nome: produto.nome,
@@ -44,7 +34,7 @@ function RegisterProductsForm() {
         marca: produto.marca,
         preco_original: parseFloat(produto.precoOriginal),
         preco_revenda: parseFloat(produto.precoRevenda),
-        quantidade: produto.quantidade,
+        quantidade: parseInt(produto.quantidade),
       })
       .then((response) => {
         alert("Produto adicionado com sucesso!");
