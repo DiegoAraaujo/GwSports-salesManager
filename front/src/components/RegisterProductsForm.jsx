@@ -7,7 +7,7 @@ function RegisterProductsForm() {
       <div className="register-or-edit-product">
         <h2 className="register-product">Cadastro de Produtos</h2>
         <Link to="/editPage">
-          <h2 className="edit-product">Editar Estoque</h2>
+          <h2 className="edit-product">Editar Produtos</h2>
         </Link>
       </div>
       <form className="register-products-form" autoComplete="off">
