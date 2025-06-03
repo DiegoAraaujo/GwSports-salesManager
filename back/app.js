@@ -6,7 +6,7 @@ const cors = require('cors'); // 👈 importa o cors
 const app = express();
 
 // Middlewares
-app.use(cors()); // 👈 habilita o CORS
+app.use(cors());
 app.use(express.json());
 
 // Rotas
