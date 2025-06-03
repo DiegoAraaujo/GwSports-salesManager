@@ -1,6 +1,9 @@
+require('dotenv').config();
+
 const express = require('express');
+const cors = require('cors'); // 👈 importa o cors
+
 const app = express();
-const cors = require('cors');
 
 // Middlewares
 app.use(cors());
