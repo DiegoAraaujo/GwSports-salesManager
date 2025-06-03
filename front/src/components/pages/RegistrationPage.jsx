@@ -4,17 +4,38 @@ import RegisterProductsForm from "../RegisterProductsForm";
 import SalesForm from "../SalesForm";
 import MoneyBox from "../MoneyBox";
 
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+
 function Main() {
+  const [produtos, setProdutos] = useState([]);
+  useEffect(() => {
+    axios
+      .get("http://localhost:3000/produtos")
+      .then((response) => {
+        console.log("Produtos recebidos:", response.data); // Aqui você vê o array inteiro no console
+        response.data.forEach((produto) => console.log(produto)); // Aqui imprime cada produto separado
+        setProdutos(response.data);
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar produtos:", error);
+      });
+  }, []);
+
   return (
     <main className="container">
       <section className="stock-section">
         <h2>Estoque</h2>
         <div>
-          <ProductDate />
-          <ProductDate />
-          <ProductDate />
-          <ProductDate />
-          <ProductDate />
+          {produtos.map((produto) => (
+            <ProductDate
+              nome={produto.nome}
+              tamanho={produto.tamanho}
+              valor={produto.preco_revenda} 
+              quantidade={produto.quantidade}
+              marca={produto.marca}
+            />
+          ))}
         </div>
       </section>
 

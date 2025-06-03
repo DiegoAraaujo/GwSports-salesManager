@@ -1,7 +1,12 @@
+require('dotenv').config();
+
 const express = require('express');
+const cors = require('cors'); // 👈 importa o cors
+
 const app = express();
 
 // Middlewares
+app.use(cors()); // 👈 habilita o CORS
 app.use(express.json());
 
 // Rotas
