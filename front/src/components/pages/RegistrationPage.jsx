@@ -31,7 +31,7 @@ function Main() {
             <ProductDate
               nome={produto.nome}
               tamanho={produto.tamanho}
-              valor={produto.preco_revenda} 
+              valor={produto.preco_revenda}
               quantidade={produto.quantidade}
               marca={produto.marca}
             />
