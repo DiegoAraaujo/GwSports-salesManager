@@ -11,33 +11,6 @@ function Header() {
   // Hook para pegar a rota atual
   const location = useLocation();
 
-  const produtos = [
-    {
-      Nome: "Camiseta academia",
-      categoria: "Roupas",
-      marca: "nike",
-      tamanho: "G",
-      valor: 80,
-      estoque: 200,
-    },
-    {
-      Nome: "mercurial 2024",
-      categoria: "chuteira",
-      marca: "nike",
-      tamanho: "40",
-      valor: 400,
-      estoque: 100,
-    },
-    {
-      Nome: "faixa cabelo",
-      categoria: "Roupas",
-      marca: "nike",
-      tamanho: "p",
-      valor: 30,
-      estoque: 10,
-    },
-  ];
-
   function handlePesquisa(evento) {
     const texto = evento.target.value;
     setTermoPesquisa(texto);
@@ -54,10 +27,10 @@ function Header() {
     setProdutosFiltrados(filtrados);
   }
 
-  // Função que verifica se a rota está ativa
-  function isActive(path) {
-    return location.pathname === path ? "icon-active" : "";
-  }
+function isActive(...paths) {
+  return paths.includes(location.pathname) ? "icon-active" : "";
+}
+
 
   return (
     <header className="container">
@@ -95,7 +68,7 @@ function Header() {
 
       <div className="options-menu-navegation">
         <Link to="/">
-          <div className={isActive("/")}>
+          <div className={isActive("/", "/editPage")}>
             <ion-icon name="home"></ion-icon>
           </div>
         </Link>
