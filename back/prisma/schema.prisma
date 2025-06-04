@@ -56,7 +56,7 @@ model Vendas{
   status_pagamento Status_pagamento
   valor_venda Float
   data_venda DateTime @default(now())
-  data_pagamento String
+  data_pagamento String?
   produtoId Int
   
   produto Produto @relation(fields: [produtoId], references: [id])
