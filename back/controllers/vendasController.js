@@ -44,12 +44,31 @@ exports.listarPorNomeCliente = async (req, res) => {
     const vendas = await prisma.vendas.findMany({
       where: {
         nome_cliente: {
-          contains: nome || undefined // Filtra se nome existir
-        }
-      }
+          contains: nome || undefined, // Filtra se nome existir
+        },
+      },
     });
     res.json(vendas);
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+exports.listarVendasComProdutos = async (req, res) => {
+  try {
+    const { status_pagamento } = req.query;
+
+    const vendas = await prisma.vendas.findMany({
+      where: {
+        status_pagamento: status_pagamento ? status_pagamento : undefined,
+      },
+      include: {
+        produto: true,
+      },
+    });
+
+    res.json(vendas);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
