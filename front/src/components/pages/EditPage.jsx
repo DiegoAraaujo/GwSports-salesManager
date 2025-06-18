@@ -13,8 +13,6 @@ function EditPage() {
     axios
       .get("http://localhost:3000/produtos")
       .then((response) => {
-        console.log("Produtos recebidos:", response.data); // Aqui você vê o array inteiro no console
-        response.data.forEach((produto) => console.log(produto)); // Aqui imprime cada produto separado
         setProdutos(response.data);
       })
       .catch((error) => {

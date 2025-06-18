@@ -3,6 +3,7 @@ const prisma = new PrismaClient();
 
 exports.criarVenda = async (req, res) => {
   try {
+
     const { tipo_pagamento } = req.body;
 
     const dataVenda = {
