@@ -1,37 +1,76 @@
+// src/pages/InsightsPage.jsx
 import "../../styles/insightsPage.css";
 import Img from "../../assets/graphic.svg";
 import PendingSale from "../PendingSale";
 import Button from "../Button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
 function InsightsPage() {
   const [vendasPendentes, setVendasPendentes] = useState([]);
-  const [todasAsVendas, setTodasAsVendas] = useState([]);   
-  const [carregando, setCarregando] = useState(true);   
+  const [todasAsVendas, setTodasAsVendas] = useState([]); // Este estado agora será usado para refletir a mudança
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(null); // Novo estado para lidar com erros
+
+  // Função para buscar as vendas do backend
+  const fetchVendas = useCallback(async () => {
+    setCarregando(true);
+    setErro(null);
+    try {
+      const response = await axios.get("http://localhost:3000/vendas");
+      setTodasAsVendas(response.data);
+
+      const pendentes = response.data.filter(
+        (venda) => venda.status_pagamento === "PENDENTE"
+      );
+      setVendasPendentes(pendentes);
+    } catch (error) {
+      console.error("Erro ao buscar vendas:", error);
+      setErro("Erro ao carregar vendas. Tente novamente mais tarde.");
+    } finally {
+      setCarregando(false);
+    }
+  }, []);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3000/vendas")
-      .then((response) => {
+    fetchVendas(); // Chamamos a função de busca ao montar o componente
+  }, [fetchVendas]);
 
-        // Salvando todas as vendas no novo estado
-        setTodasAsVendas(response.data);
-
-        // Filtra as pendentes e salva no estado de pendentes
-        const pendentes = response.data.filter(
-          (venda) => venda.status_pagamento === "PENDENTE"
-        );
-        setVendasPendentes(pendentes);
-
-        setCarregando(false);
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar vendas:", error);
-        setCarregando(false);
+  // Função para lidar com o clique no botão "Marcar como pago"
+  const handleMarcarComoPago = async (vendaId, valorVenda) => {
+    try {
+      // 1. Atualiza o status da venda no backend
+      await axios.put(`http://localhost:3000/vendas/${vendaId}`, {
+        status_pagamento: "PAGO",
+        // A data_pagamento será definida no backend automaticamente
+        // quando o status for alterado para PAGO.
       });
-  }, []);
-console.log("todas as vendas: " + JSON.stringify(todasAsVendas, null, 2));
+
+      // 2. Atualiza os estados no frontend para remover a venda da lista de pendentes
+      setVendasPendentes((prevVendas) =>
+        prevVendas.filter((venda) => venda.id !== vendaId)
+      );
+
+      // Opcional: Atualizar 'todasAsVendas' se você precisar que esse estado reflita a mudança
+      // setTodasAsVendas((prevTodasAsVendas) =>
+      //   prevTodasAsVendas.map((venda) =>
+      //     venda.id === vendaId
+      //       ? { ...venda, status_pagamento: "PAGO", data_pagamento: new Date().toISOString() }
+      //       : venda
+      //   )
+      // );
+
+      console.log(
+        `Venda ${vendaId} marcada como paga e caixa atualizado no backend.`
+      );
+      // Poderíamos adicionar uma mensagem de sucesso ao usuário aqui
+    } catch (error) {
+      console.error("Erro ao marcar venda como paga:", error);
+      setErro("Erro ao marcar pagamento como pago. Tente novamente.");
+      // Poderíamos adicionar uma mensagem de erro ao usuário aqui
+    }
+  };
+
   return (
     <main className="container container-insightsPage">
       <section className="smartsection">
@@ -40,10 +79,7 @@ console.log("todas as vendas: " + JSON.stringify(todasAsVendas, null, 2));
           <div className="report-here" style={{ whiteSpace: "pre-line" }}>
             {/* Conteúdo do relatório aqui */}
           </div>
-          <div
-            className="generate-report-button"
-            style={{ cursor: "pointer" }}
-          >
+          <div className="generate-report-button" style={{ cursor: "pointer" }}>
             <Button prop="Gerar relatório" />
           </div>
         </div>
@@ -68,6 +104,8 @@ console.log("todas as vendas: " + JSON.stringify(todasAsVendas, null, 2));
         <ul className="pending-list">
           {carregando ? (
             <li>Carregando pagamentos pendentes...</li>
+          ) : erro ? (
+            <li className="error-message">{erro}</li>
           ) : vendasPendentes.length === 0 ? (
             <li>Todos os pagamentos estão em dia.</li>
           ) : (
@@ -82,7 +120,14 @@ console.log("todas as vendas: " + JSON.stringify(todasAsVendas, null, 2));
                   />
                 </div>
                 <div className="mark-as-paid-button">
-                  <Button prop="Marcar como pago" />
+                  <Button
+                    prop="Marcar como pago"
+                    type="button" // Garante que não tente submeter um formulário
+                    // Passa a função de tratamento de clique, com os dados da venda
+                    onClick={() =>
+                      handleMarcarComoPago(venda.id, venda.valor_venda)
+                    }
+                  />
                 </div>
               </li>
             ))
