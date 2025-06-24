@@ -1,11 +1,9 @@
 // src/pages/InsightsPage.jsx
 import "../../styles/insightsPage.css";
-// Removemos a importação de Img, pois não será mais usada
 import PendingSale from "../PendingSale";
 import Button from "../Button";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
-// Importações do Recharts para o gráfico de barras
 import {
   BarChart,
   Bar,
@@ -21,9 +19,14 @@ function InsightsPage() {
   const [todasAsVendas, setTodasAsVendas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
-  const [dadosGrafico, setDadosGrafico] = useState([]); // Novo estado para os dados do gráfico
+  const [dadosGrafico, setDadosGrafico] = useState([]);
 
-  // Função para buscar as vendas do backend
+  // Estados para relatório
+  const [relatorio, setRelatorio] = useState("");
+  const [carregandoRelatorio, setCarregandoRelatorio] = useState(false);
+  const [erroRelatorio, setErroRelatorio] = useState(null);
+
+  // Buscar vendas e preparar gráfico e pendentes
   const fetchVendas = useCallback(async () => {
     setCarregando(true);
     setErro(null);
@@ -37,8 +40,6 @@ function InsightsPage() {
       );
       setVendasPendentes(pendentes);
 
-      // Prepara os dados para o gráfico
-      // Agrupa as vendas pelo tipo_pagamento e soma os valores
       const aggregatedData = vendas.reduce((acc, venda) => {
         const tipo = venda.tipo_pagamento;
         if (!acc[tipo]) {
@@ -48,7 +49,6 @@ function InsightsPage() {
         return acc;
       }, {});
 
-      // Converte o objeto agregado em um array para o Recharts
       setDadosGrafico(Object.values(aggregatedData));
     } catch (error) {
       console.error("Erro ao buscar vendas:", error);
@@ -62,22 +62,16 @@ function InsightsPage() {
     fetchVendas();
   }, [fetchVendas]);
 
-  // Função para lidar com o clique no botão "Marcar como pago"
+  // Marcar como pago, atualiza lista e gráfico
   const handleMarcarComoPago = async (vendaId, valorVenda) => {
     try {
       await axios.put(`http://localhost:3000/vendas/${vendaId}`, {
         status_pagamento: "PAGO",
       });
-
-      // Atualiza os estados no frontend
       setVendasPendentes((prevVendas) =>
         prevVendas.filter((venda) => venda.id !== vendaId)
       );
-
-      // Re-busca todas as vendas para atualizar o gráfico e a lista de pendentes
-      // Isso garante que o gráfico reflita imediatamente a mudança
       await fetchVendas();
-
       console.log(
         `Venda ${vendaId} marcada como paga e caixa atualizado no backend.`
       );
@@ -87,16 +81,61 @@ function InsightsPage() {
     }
   };
 
+  // Função gerar relatório integrada da IA
+  const gerarRelatorio = async () => {
+    setCarregandoRelatorio(true);
+    setErroRelatorio(null);
+    setRelatorio("");
+
+    // Monta a string de vendas para enviar ao backend
+    const vendasTexto = todasAsVendas
+      .map((venda) => {
+        return `${venda.nome_produto || venda.produto || "Produto desconhecido"} vendeu ${
+          venda.quantidade_vendida || venda.qtd || 0
+        } unidades.`;
+      })
+      .join(" ");
+
+    try {
+      const response = await axios.post("http://localhost:3000/relatorio", {
+        dados: vendasTexto,
+      });
+      setRelatorio(response.data.relatorio);
+    } catch (error) {
+      console.error(
+        "Erro ao gerar relatório:",
+        error.response?.data || error.message || error
+      );
+      setErroRelatorio("Erro ao gerar relatório. Tente novamente mais tarde.");
+    } finally {
+      setCarregandoRelatorio(false);
+    }
+  };
+
   return (
     <main className="container container-insightsPage">
       <section className="smartsection">
         <div className="report-container">
           <h2>Relatório</h2>
           <div className="report-here" style={{ whiteSpace: "pre-line" }}>
-            {/* Conteúdo do relatório aqui */}
+            {carregandoRelatorio && <p>Carregando relatório...</p>}
+            {erroRelatorio && <p style={{ color: "red" }}>{erroRelatorio}</p>}
+            {!carregandoRelatorio && !erroRelatorio && relatorio && (
+              <pre>{relatorio}</pre>
+            )}
+            {!carregandoRelatorio && !erroRelatorio && !relatorio && (
+              <p>Conteúdo do relatório aqui</p>
+            )}
           </div>
-          <div className="generate-report-button" style={{ cursor: "pointer" }}>
-            <Button prop="Gerar relatório" />
+          <div
+            className="generate-report-button"
+            style={{ cursor: "pointer" }}
+          >
+            <Button
+              prop="Gerar relatório"
+              onClick={gerarRelatorio}
+              disabled={carregandoRelatorio}
+            />
           </div>
         </div>
 
@@ -117,9 +156,7 @@ function InsightsPage() {
                   bottom: 5,
                 }}
               >
-                {/* <CartesianGrid strokeDasharray="3 3" /> */}
-                <XAxis dataKey="name" />{" "}
-                {/* 'name' será o tipo de pagamento (DINHEIRO, PIX, CARTAO, PENDENTE) */}
+                <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
                 <Legend />
@@ -165,9 +202,7 @@ function InsightsPage() {
                   <Button
                     prop="Marcar como pago"
                     type="button"
-                    onClick={() =>
-                      handleMarcarComoPago(venda.id, venda.valor_venda)
-                    }
+                    onClick={() => handleMarcarComoPago(venda.id, venda.valor_venda)}
                   />
                 </div>
               </li>
