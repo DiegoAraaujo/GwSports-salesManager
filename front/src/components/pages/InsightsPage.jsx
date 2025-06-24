@@ -1,16 +1,27 @@
 // src/pages/InsightsPage.jsx
 import "../../styles/insightsPage.css";
-import Img from "../../assets/graphic.svg";
+// Removemos a importação de Img, pois não será mais usada
 import PendingSale from "../PendingSale";
 import Button from "../Button";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+// Importações do Recharts para o gráfico de barras
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 function InsightsPage() {
   const [vendasPendentes, setVendasPendentes] = useState([]);
-  const [todasAsVendas, setTodasAsVendas] = useState([]); // Este estado agora será usado para refletir a mudança
+  const [todasAsVendas, setTodasAsVendas] = useState([]);
   const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState(null); // Novo estado para lidar com erros
+  const [erro, setErro] = useState(null);
+  const [dadosGrafico, setDadosGrafico] = useState([]); // Novo estado para os dados do gráfico
 
   // Função para buscar as vendas do backend
   const fetchVendas = useCallback(async () => {
@@ -18,12 +29,27 @@ function InsightsPage() {
     setErro(null);
     try {
       const response = await axios.get("http://localhost:3000/vendas");
-      setTodasAsVendas(response.data);
+      const vendas = response.data;
+      setTodasAsVendas(vendas);
 
-      const pendentes = response.data.filter(
+      const pendentes = vendas.filter(
         (venda) => venda.status_pagamento === "PENDENTE"
       );
       setVendasPendentes(pendentes);
+
+      // Prepara os dados para o gráfico
+      // Agrupa as vendas pelo tipo_pagamento e soma os valores
+      const aggregatedData = vendas.reduce((acc, venda) => {
+        const tipo = venda.tipo_pagamento;
+        if (!acc[tipo]) {
+          acc[tipo] = { name: tipo, valor: 0 };
+        }
+        acc[tipo].valor += venda.valor_venda;
+        return acc;
+      }, {});
+
+      // Converte o objeto agregado em um array para o Recharts
+      setDadosGrafico(Object.values(aggregatedData));
     } catch (error) {
       console.error("Erro ao buscar vendas:", error);
       setErro("Erro ao carregar vendas. Tente novamente mais tarde.");
@@ -33,41 +59,31 @@ function InsightsPage() {
   }, []);
 
   useEffect(() => {
-    fetchVendas(); // Chamamos a função de busca ao montar o componente
+    fetchVendas();
   }, [fetchVendas]);
 
   // Função para lidar com o clique no botão "Marcar como pago"
   const handleMarcarComoPago = async (vendaId, valorVenda) => {
     try {
-      // 1. Atualiza o status da venda no backend
       await axios.put(`http://localhost:3000/vendas/${vendaId}`, {
         status_pagamento: "PAGO",
-        // A data_pagamento será definida no backend automaticamente
-        // quando o status for alterado para PAGO.
       });
 
-      // 2. Atualiza os estados no frontend para remover a venda da lista de pendentes
+      // Atualiza os estados no frontend
       setVendasPendentes((prevVendas) =>
         prevVendas.filter((venda) => venda.id !== vendaId)
       );
 
-      // Opcional: Atualizar 'todasAsVendas' se você precisar que esse estado reflita a mudança
-      // setTodasAsVendas((prevTodasAsVendas) =>
-      //   prevTodasAsVendas.map((venda) =>
-      //     venda.id === vendaId
-      //       ? { ...venda, status_pagamento: "PAGO", data_pagamento: new Date().toISOString() }
-      //       : venda
-      //   )
-      // );
+      // Re-busca todas as vendas para atualizar o gráfico e a lista de pendentes
+      // Isso garante que o gráfico reflita imediatamente a mudança
+      await fetchVendas();
 
       console.log(
         `Venda ${vendaId} marcada como paga e caixa atualizado no backend.`
       );
-      // Poderíamos adicionar uma mensagem de sucesso ao usuário aqui
     } catch (error) {
       console.error("Erro ao marcar venda como paga:", error);
       setErro("Erro ao marcar pagamento como pago. Tente novamente.");
-      // Poderíamos adicionar uma mensagem de erro ao usuário aqui
     }
   };
 
@@ -85,10 +101,36 @@ function InsightsPage() {
         </div>
 
         <div className="graphic-container">
-          <h2>Gráfico de vendas</h2>
-          <div>
-            <img src={Img} alt="Gráfico de vendas" />
-          </div>
+          <h2>Gráfico de vendas por Tipo de Pagamento</h2>
+          {carregando ? (
+            <p>Carregando gráfico...</p>
+          ) : erro ? (
+            <p className="error-message">{erro}</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart
+                data={dadosGrafico}
+                margin={{
+                  top: 5,
+                  right: 30,
+                  left: 20,
+                  bottom: 5,
+                }}
+              >
+                {/* <CartesianGrid strokeDasharray="3 3" /> */}
+                <XAxis dataKey="name" />{" "}
+                {/* 'name' será o tipo de pagamento (DINHEIRO, PIX, CARTAO, PENDENTE) */}
+                <YAxis />
+                <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
+                <Legend />
+                <Bar
+                  dataKey="valor"
+                  fill="#8884d8"
+                  name="Valor Total de Vendas"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </section>
 
@@ -122,8 +164,7 @@ function InsightsPage() {
                 <div className="mark-as-paid-button">
                   <Button
                     prop="Marcar como pago"
-                    type="button" // Garante que não tente submeter um formulário
-                    // Passa a função de tratamento de clique, com os dados da venda
+                    type="button"
                     onClick={() =>
                       handleMarcarComoPago(venda.id, venda.valor_venda)
                     }
