@@ -118,7 +118,11 @@ function InsightsPage() {
       const response = await axios.post("http://localhost:3000/relatorio", {
         dados: vendasTexto,
       });
-      setRelatorio(response.data.relatorio);
+
+      const respostaBruta = response.data.relatorio;
+      const respostaSemAsteriscos = respostaBruta.replace(/\*\*/g, "");
+
+      setRelatorio(respostaSemAsteriscos);
     } catch (error) {
       console.error(
         "Erro ao gerar relatório:",

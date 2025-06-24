@@ -114,6 +114,7 @@
   overflow: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  background-color: var(--background-containers);
 }
 .pending-list > li {
   padding: 1rem;
