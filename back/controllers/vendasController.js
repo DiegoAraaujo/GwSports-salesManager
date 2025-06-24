@@ -18,30 +18,8 @@ exports.criarVenda = async (req, res) => {
 
     const venda = await prisma.vendas.create({ data: dataVenda });
 
-    // Se a venda for paga no momento da criação, atualize o caixa
-    if (dataVenda.status_pagamento === "PAGO") {
-      await prisma.caixa.update({
-        where: { id: 1 }, // Assumimos que há apenas um registro de Caixa com ID 1
-        data: {
-          saldo: {
-            increment: venda.valor_venda,
-          },
-          quantidade_vendas: {
-            increment: 1,
-          },
-        },
-      });
-    } else {
-      // Se a venda for PENDENTE, incrementa pagamentos_pendentes no caixa
-      await prisma.caixa.update({
-        where: { id: 1 }, // Assumimos que há apenas um registro de Caixa com ID 1
-        data: {
-          pagamentos_pendentes: {
-            increment: 1,
-          },
-        },
-      });
-    }
+    // REMOVIDA: Lógica de atualização do caixa na criação da venda,
+    // pois o caixa é calculado dinamicamente pelo listarCaixa.
 
     res.status(201).json(venda);
   } catch (error) {
@@ -54,7 +32,7 @@ exports.criarVenda = async (req, res) => {
 
 exports.atualizarVenda = async (req, res) => {
   const { id } = req.params;
-  const { status_pagamento, valor_venda } = req.body; // Pegamos o status e o valor da requisição
+  const { status_pagamento } = req.body; // Apenas o status_pagamento é relevante aqui para a lógica
 
   try {
     const vendaExistente = await prisma.vendas.findUnique({
@@ -73,29 +51,20 @@ exports.atualizarVenda = async (req, res) => {
       vendaExistente.status_pagamento === "PENDENTE"
     ) {
       dataToUpdate.data_pagamento = new Date().toISOString(); // Define a data de pagamento
-      dataToUpdate.tipo_pagamento = "DINHEIRO"; // Ou outro tipo padrão, já que está sendo pago agora
-
-      // Atualiza o caixa
-      await prisma.caixa.update({
-        where: { id: 1 }, // Assumimos que há apenas um registro de Caixa com ID 1
-        data: {
-          saldo: {
-            increment: vendaExistente.valor_venda, // Usa o valor original da venda
-          },
-          quantidade_vendas: {
-            increment: 1,
-          },
-          pagamentos_pendentes: {
-            decrement: 1, // Decrementa a contagem de pagamentos pendentes
-          },
-        },
-      });
+      // Podemos definir um tipo de pagamento padrão se não for fornecido explicitamente na requisição
+      // Isso é útil se o status mudar para PAGO mas o tipo_pagamento original era PENDENTE
+      if (!dataToUpdate.tipo_pagamento) {
+        dataToUpdate.tipo_pagamento = "DINHEIRO"; // Ou PIX, CARTAO, um padrão razoável
+      }
     }
 
     const vendaAtualizada = await prisma.vendas.update({
       where: { id: parseInt(id) },
       data: dataToUpdate,
     });
+
+    // REMOVIDA: Lógica de atualização do caixa,
+    // pois o caixa é calculado dinamicamente pelo listarCaixa e o front-end re-busca os dados.
 
     res.json(vendaAtualizada);
   } catch (error) {
@@ -105,11 +74,11 @@ exports.atualizarVenda = async (req, res) => {
 
 exports.listarPorNomeCliente = async (req, res) => {
   try {
-    const { nome } = req.query; // Assume que você vai filtrar por query param
+    const { nome } = req.query;
     const vendas = await prisma.vendas.findMany({
       where: {
         nome_cliente: {
-          contains: nome || undefined, // Filtra se nome existir
+          contains: nome || undefined,
         },
       },
     });
