@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import axios from "axios";
 import "../styles/header.css";
 import LogoMarca from "../assets/logo-GwSports.svg";
 import ProductSearched from "./ProductSearched";
@@ -7,10 +8,24 @@ import ProductSearched from "./ProductSearched";
 function Header() {
   const [termoPesquisa, setTermoPesquisa] = useState("");
   const [produtosFiltrados, setProdutosFiltrados] = useState([]);
+  const [produtos, setProdutos] = useState([]);
 
-  // Hook para pegar a rota atual
   const location = useLocation();
 
+  // 🔗 Buscar produtos do backend
+  useEffect(() => {
+    axios
+      .get("http://localhost:3000/produtos")
+      .then((response) => {
+        console.log(response.data);
+        setProdutos(response.data);
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar produtos:", error);
+      });
+  }, []);
+
+  // 🔍 Função de pesquisa
   function handlePesquisa(evento) {
     const texto = evento.target.value;
     setTermoPesquisa(texto);
@@ -21,16 +36,16 @@ function Header() {
     }
 
     const filtrados = produtos.filter((produto) =>
-      produto.Nome.toLowerCase().includes(texto.toLowerCase())
+      produto.nome.toLowerCase().includes(texto.toLowerCase())
     );
 
     setProdutosFiltrados(filtrados);
   }
 
-function isActive(...paths) {
-  return paths.includes(location.pathname) ? "icon-active" : "";
-}
-
+  // Verificar rota ativa para destacar ícone
+  function isActive(...paths) {
+    return paths.includes(location.pathname) ? "icon-active" : "";
+  }
 
   return (
     <header className="container">

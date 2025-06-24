@@ -14,5 +14,6 @@ app.use('/usuarios', require('./routes/usuarioRoutes'));
 app.use('/produtos', require('./routes/produtoRoutes'));
 app.use('/vendas', require('./routes/vendasRoutes'));
 app.use('/caixa', require('./routes/caixaRoutes'));
+app.use('/relatorio', require('./routes/relatorioRoutes'));
 
 module.exports = app;
