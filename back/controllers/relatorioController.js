@@ -4,7 +4,7 @@ const API_TOKEN = process.env.COHERE_API_KEY;
 
 async function gerarRelatorio(dados) {
   try {
-    const prompt = `Os dados abaixo são da GWSports, contendo informações detalhadas das vendas realizadas:\n\n${dados}\n\nPor favor, gere um relatório claro, organizado e em português, apresentando cada venda em tópicos ou linhas separadas. Destaque o nome do produto, o valor da venda, o status do pagamento e a forma de pagamento. Evite repetir informações ou incluir dados irrelevantes. Mantenha a resposta objetiva e fácil de entender.`;
+    const prompt = `Os dados a seguir mostram informações detalhadas:\n\n${dados}\n\nCom base nesses dados, gere um relatório simples destacando os pontos principais.`;
 
     const response = await axios.post(
       "https://api.cohere.ai/generate",
