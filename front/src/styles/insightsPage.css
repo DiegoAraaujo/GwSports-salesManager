@@ -19,7 +19,7 @@
 .report-container {
   flex: 1;
   max-width: 490px;
-  height: 400px;
+  height: 350px;
 }
 
 .report-here {
@@ -29,7 +29,7 @@
   word-break: break-word;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
-  height: 340px;
+  height: 320px;
   max-width: 100%;
   box-sizing: border-box;
   display: block;
@@ -46,7 +46,7 @@
 
 
 .graphic-container {
-  height: 400px;
+  height: 350px;
   flex: 1;
 }
 
@@ -54,7 +54,7 @@
   background-color: var(--background-containers);
   padding: 10px;
   border-radius: 20px;
-  height: 340px;
+  height: 320px;
 }
 /* .report-here {
   background-color: var(--background-containers);
@@ -92,7 +92,6 @@
 }
 
 .pending-payments-section {
-  margin-top: 4rem;
   display: flex;
   flex-direction: column;
   justify-content: center;

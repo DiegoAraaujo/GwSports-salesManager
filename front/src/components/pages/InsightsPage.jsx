@@ -162,7 +162,7 @@ function InsightsPage() {
             ) : erro ? (
               <p className="error-message">{erro}</p>
             ) : (
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart
                   data={dadosGrafico}
                   margin={{
