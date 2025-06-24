@@ -1,4 +1,3 @@
-// src/pages/InsightsPage.jsx
 import "../../styles/insightsPage.css";
 import PendingSale from "../PendingSale";
 import Button from "../Button";
@@ -17,14 +16,26 @@ import {
 function InsightsPage() {
   const [vendasPendentes, setVendasPendentes] = useState([]);
   const [todasAsVendas, setTodasAsVendas] = useState([]);
+  const [produtos, setProdutos] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
   const [dadosGrafico, setDadosGrafico] = useState([]);
-
-  // Estados para relatório
   const [relatorio, setRelatorio] = useState("");
   const [carregandoRelatorio, setCarregandoRelatorio] = useState(false);
   const [erroRelatorio, setErroRelatorio] = useState(null);
+
+  // Buscar produtos do backend
+  useEffect(() => {
+    axios
+      .get("http://localhost:3000/produtos")
+      .then((response) => {
+        setProdutos(response.data);
+        console.log("Produtos carregados:", response.data); // <-- Aqui
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar produtos:", error);
+      });
+  }, []);
 
   // Buscar vendas e preparar gráfico e pendentes
   const fetchVendas = useCallback(async () => {
@@ -62,7 +73,7 @@ function InsightsPage() {
     fetchVendas();
   }, [fetchVendas]);
 
-  // Marcar como pago, atualiza lista e gráfico
+  // Marcar como pago
   const handleMarcarComoPago = async (vendaId, valorVenda) => {
     try {
       await axios.put(`http://localhost:3000/vendas/${vendaId}`, {
@@ -72,9 +83,6 @@ function InsightsPage() {
         prevVendas.filter((venda) => venda.id !== vendaId)
       );
       await fetchVendas();
-      console.log(
-        `Venda ${vendaId} marcada como paga e caixa atualizado no backend.`
-      );
     } catch (error) {
       console.error("Erro ao marcar venda como paga:", error);
       setErro("Erro ao marcar pagamento como pago. Tente novamente.");
@@ -87,14 +95,24 @@ function InsightsPage() {
     setErroRelatorio(null);
     setRelatorio("");
 
-    // Monta a string de vendas para enviar ao backend
+    // Criar um mapa para buscar o nome do produto pelo ID
+    const mapaProdutos = produtos.reduce((acc, produto) => {
+      acc[produto.id] = produto.nome; // aqui: produto.nome e não nome_produto
+      return acc;
+    }, {});
+
+    console.log("Todas as vendas:", todasAsVendas);
+    console.log("Mapa de produtos:", mapaProdutos);
+
     const vendasTexto = todasAsVendas
       .map((venda) => {
-        return `${venda.nome_produto || venda.produto || "Produto desconhecido"} vendeu ${
-          venda.quantidade_vendida || venda.qtd || 0
-        } unidades.`;
+        const nomeProduto =
+          mapaProdutos[venda.produtoId] || "Produto desconhecido";
+        return `Venda do produto ${nomeProduto} no valor de R$ ${venda.valor_venda}. Cliente: ${venda.nome_cliente}. Tipo de pagamento: ${venda.tipo_pagamento}. Status: ${venda.status_pagamento}.`;
       })
       .join(" ");
+
+    console.log("String enviada para a IA:", vendasTexto);
 
     try {
       const response = await axios.post("http://localhost:3000/relatorio", {
@@ -121,16 +139,13 @@ function InsightsPage() {
             {carregandoRelatorio && <p>Carregando relatório...</p>}
             {erroRelatorio && <p style={{ color: "red" }}>{erroRelatorio}</p>}
             {!carregandoRelatorio && !erroRelatorio && relatorio && (
-              <pre>{relatorio}</pre>
+              <div>{relatorio}</div>
             )}
             {!carregandoRelatorio && !erroRelatorio && !relatorio && (
               <p>Conteúdo do relatório aqui</p>
             )}
           </div>
-          <div
-            className="generate-report-button"
-            style={{ cursor: "pointer" }}
-          >
+          <div className="generate-report-button" style={{ cursor: "pointer" }}>
             <Button
               prop="Gerar relatório"
               onClick={gerarRelatorio}
@@ -141,33 +156,35 @@ function InsightsPage() {
 
         <div className="graphic-container">
           <h2>Gráfico de vendas por Tipo de Pagamento</h2>
-          {carregando ? (
-            <p>Carregando gráfico...</p>
-          ) : erro ? (
-            <p className="error-message">{erro}</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart
-                data={dadosGrafico}
-                margin={{
-                  top: 5,
-                  right: 30,
-                  left: 20,
-                  bottom: 5,
-                }}
-              >
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
-                <Legend />
-                <Bar
-                  dataKey="valor"
-                  fill="#8884d8"
-                  name="Valor Total de Vendas"
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          )}
+          <div>
+            {carregando ? (
+              <p>Carregando gráfico...</p>
+            ) : erro ? (
+              <p className="error-message">{erro}</p>
+            ) : (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={dadosGrafico}
+                  margin={{
+                    top: 5,
+                    right: 30,
+                    left: 20,
+                    bottom: 5,
+                  }}
+                >
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip formatter={(value) => `R$ ${value.toFixed(2)}`} />
+                  <Legend />
+                  <Bar
+                    dataKey="valor"
+                    fill="#8884d8"
+                    name="Valor Total de Vendas"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </div>
       </section>
 
@@ -202,7 +219,9 @@ function InsightsPage() {
                   <Button
                     prop="Marcar como pago"
                     type="button"
-                    onClick={() => handleMarcarComoPago(venda.id, venda.valor_venda)}
+                    onClick={() =>
+                      handleMarcarComoPago(venda.id, venda.valor_venda)
+                    }
                   />
                 </div>
               </li>

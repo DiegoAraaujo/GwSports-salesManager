@@ -4,7 +4,7 @@ const API_TOKEN = process.env.COHERE_API_KEY;
 
 async function gerarRelatorio(dados) {
   try {
-    const prompt = `Os dados a seguir mostram informações detalhadas:\n\n${dados}\n\nCom base nesses dados, gere um relatório simples destacando os pontos principais.`;
+    const prompt = `Os dados a seguir são da GWSports, mostram informações detalhadas:\n\n${dados}\n\nCom base nesses dados, gere um relatório simples destacando os pontos principais.`;
 
     const response = await axios.post('https://api.cohere.ai/generate', {
       model: 'command-r-08-2024',
